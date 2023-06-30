@@ -101,31 +101,32 @@ function App() {
     // console.log(imageSrc);
 
     imageElement.onload = () => {
-      // Create a canvas element
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
+      try {
+        // Create a canvas element
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
 
-      // Set the canvas dimensions to match the image
-      canvas.width = imageElement.width;
-      canvas.height = imageElement.height;
+        // Set the canvas dimensions to match the image
+        canvas.width = imageElement.width;
+        canvas.height = imageElement.height;
 
-      if (!ctx) return;
-      if (!model) return;
-      // Draw the image on the canvas
-      ctx.drawImage(imageElement, 0, 0);
+        if (!ctx) return;
+        if (!model) return;
+        // Draw the image on the canvas
+        ctx.drawImage(imageElement, 0, 0);
 
-      // Get the image data from the canvas
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const img = tf.cast(tf.browser.fromPixels(imageData), "float32");
-      const inputTensor = img.reshape([1, 224, 224, 3]);
-      // Make predictions using the image tensor
-      const predictions = model.predict(inputTensor) as unknown as tf.Tensor;
-      const predictedLabel = tf.argMax(predictions, 1).dataSync()[0];
+        // Get the image data from the canvas
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const img = tf.cast(tf.browser.fromPixels(imageData), "float32");
+        const inputTensor = img.reshape([1, 224, 224, 3]);
+        // Make predictions using the image tensor
+        const predictions = model.predict(inputTensor) as unknown as tf.Tensor;
+        const predictedLabel = tf.argMax(predictions, 1).dataSync()[0];
 
-      setLabel(classes[predictedLabel]);
-
-      // Further process or analyze the predictions
-      // ...
+        setLabel(classes[predictedLabel]);
+      } catch (error) {
+        console.log(error);
+      }
     };
 
     // getPrediction(imageSrc);
