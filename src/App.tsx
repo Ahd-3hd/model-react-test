@@ -2,6 +2,17 @@ import * as tf from "@tensorflow/tfjs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Webcam from "react-webcam";
 
+const imagesPaths: Record<string, string> = {
+  "Air intake": "/air_intake.jpeg",
+  Console: "/console.jpeg",
+  Dashboard: "/dashboard2.jpg",
+  "Fog light": "/foglight.jpeg",
+  "Gear stick": "/gearstick.jpg",
+  Headlight: "/headlight.jpg",
+  "Steering wheel": "/steeringwheel.jpg",
+  "Tail light": "/taillight.jpg",
+};
+
 const classes: string[] = [
   "Air intake",
   "Console",
@@ -49,6 +60,10 @@ function App() {
   const webcamRef2 = useRef<any>(null);
 
   const [label, setLabel] = useState("");
+
+  const [currentImage, setCurrentImage] = useState("");
+
+  const [info, setInfo] = useState(false);
 
   // const [devices, setDevices] = useState([]);
   // const handleDevices = useCallback(
@@ -201,7 +216,12 @@ function App() {
 
   if (error)
     return <pre>this is an error please refresh - {JSON.stringify(error)}</pre>;
-  if (!model) return <h1>Loading ... depends on your connection</h1>;
+  if (!model)
+    return (
+      <h1>
+        Loading ... depends on your connection takes about 2-3 mins to load
+      </h1>
+    );
 
   return (
     <div
@@ -216,6 +236,88 @@ function App() {
         overflow: "hidden",
       }}
     >
+      <button
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          background: "black",
+          border: "none",
+          fontWeight: "bold",
+          color: "white",
+          margin: "0.4rem",
+          fontSize: "1rem",
+          zIndex: 100,
+        }}
+        onClick={() => {
+          setInfo(true);
+        }}
+      >
+        Click info
+      </button>
+
+      {info && (
+        <div
+          style={{
+            position: "fixed",
+            height: "100vh",
+            textAlign: "center",
+            background: "#183d75",
+            color: "white",
+            padding: "0.5rem",
+            margin: "0 auto",
+            zIndex: 100,
+          }}
+        >
+          <p>This is a model that detects 8 parts of a car.</p>
+          <p>Click to see how they look like:</p>
+          <p>
+            don't let it running in the background, it will drain your battery.
+          </p>
+
+          <div
+            style={{
+              width: "80%",
+              textAlign: "center",
+              margin: "0 auto",
+            }}
+          >
+            {classes
+              .filter((c) => c !== "No car")
+              .map((c) => (
+                <button
+                  key={c}
+                  style={{
+                    background: "black",
+                    border: "none",
+                    fontWeight: "bold",
+                    color: "white",
+                    margin: "0.4rem",
+                    fontSize: "1rem",
+                  }}
+                  onClick={() => {
+                    setCurrentImage(imagesPaths[c]);
+                  }}
+                >
+                  {c}
+                </button>
+              ))}
+
+            <div>
+              <img src={currentImage} alt="" width="260px" />
+            </div>
+
+            <button
+              onClick={() => {
+                setCurrentImage("");
+                setInfo(false);
+              }}
+            >
+              GO BACK
+            </button>
+          </div>
+        </div>
+      )}
       <Webcam
         ref={webcamRef2}
         videoConstraints={{
