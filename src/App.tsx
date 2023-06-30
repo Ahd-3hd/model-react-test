@@ -47,32 +47,30 @@ const classes: string[] = [
 function App() {
   const webcamRef = useRef<any>(null);
 
-  const [devices, setDevices] = useState([]);
+  // const [devices, setDevices] = useState([]);
 
   const [label, setLabel] = useState("");
 
-  const handleDevices = useCallback(
-    (mediaDevices: any) =>
-      setDevices(
-        mediaDevices.filter(
-          ({ kind }: { kind: string }) => kind === "videoinput"
-        )
-      ),
-    [setDevices]
-  );
+  // const handleDevices = useCallback(
+  //   (mediaDevices: any) =>
+  //     setDevices(
+  //       mediaDevices.filter(
+  //         ({ kind }: { kind: string }) => kind === "videoinput"
+  //       )
+  //     ),
+  //   [setDevices]
+  // );
 
-  console.log(devices);
-
-  useEffect(() => {
-    navigator.mediaDevices.enumerateDevices().then(handleDevices);
-  }, [handleDevices]);
+  // useEffect(() => {
+  //   navigator.mediaDevices.enumerateDevices().then(handleDevices);
+  // }, [handleDevices]);
 
   const [videoConstraints, setVideoConstraints] = useState({
     width: 224,
     height: 224,
     facingMode: "environment",
-    deviceId:
-      "915c707532ac5d746f9b48edc5caa22291512103faa7568b5417800a6e0d9a97",
+    // deviceId:
+    //   "915c707532ac5d746f9b48edc5caa22291512103faa7568b5417800a6e0d9a97",
   } as {
     width: number;
     height: number;
@@ -124,7 +122,6 @@ function App() {
       const predictions = model.predict(inputTensor) as unknown as tf.Tensor;
       const predictedLabel = tf.argMax(predictions, 1).dataSync()[0];
 
-      console.log(predictedLabel, classes[predictedLabel]);
       setLabel(classes[predictedLabel]);
 
       // Further process or analyze the predictions
@@ -151,8 +148,9 @@ function App() {
     };
   }, [capture]);
 
-  if (error) return <pre>{JSON.stringify(error)}</pre>;
-  if (!model) return <h1>Loading</h1>;
+  if (error)
+    return <pre>this is an error please refresh - {JSON.stringify(error)}</pre>;
+  if (!model) return <h1>Loading ... depends on your connection</h1>;
 
   return (
     <>
@@ -162,7 +160,6 @@ function App() {
         screenshotFormat="image/jpeg"
         screenshotQuality={1}
       />
-      <button onClick={capture}>predict</button>
       <h1>{label}</h1>
       {/* 
       <Webcam
