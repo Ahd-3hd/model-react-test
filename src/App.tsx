@@ -81,8 +81,8 @@ function App() {
   });
 
   const [videoConstraints2, setVideoConstraints2] = useState({
-    width: 224,
-    height: 224,
+    width: window.visualViewport?.width ?? window.innerWidth ?? 224,
+    height: window.visualViewport?.height ?? window.innerHeight ?? 224,
     facingMode: "environment",
     // deviceId:
     //   "fee45256aec9e52564209e6c4d3607cd6ad2cdee607ff5f92a7d514348198291",
@@ -117,28 +117,32 @@ function App() {
 
     imageElement.onload = () => {
       try {
-        // Create a canvas element
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
+        tf.tidy(() => {
+          // Create a canvas element
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
 
-        // Set the canvas dimensions to match the image
-        canvas.width = imageElement.width;
-        canvas.height = imageElement.height;
+          // Set the canvas dimensions to match the image
+          canvas.width = imageElement.width;
+          canvas.height = imageElement.height;
 
-        if (!ctx) return;
-        if (!model) return;
-        // Draw the image on the canvas
-        ctx.drawImage(imageElement, 0, 0);
+          if (!ctx) return;
+          if (!model) return;
+          // Draw the image on the canvas
+          ctx.drawImage(imageElement, 0, 0);
 
-        // Get the image data from the canvas
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const img = tf.cast(tf.browser.fromPixels(imageData), "float32");
-        const inputTensor = img.reshape([1, 224, 224, 3]);
-        // Make predictions using the image tensor
-        const predictions = model.predict(inputTensor) as unknown as tf.Tensor;
-        const predictedLabel = tf.argMax(predictions, 1).dataSync()[0];
-        // console.log(predictedLabel);
-        setLabel(classes[predictedLabel]);
+          // Get the image data from the canvas
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const img = tf.cast(tf.browser.fromPixels(imageData), "float32");
+          const inputTensor = img.reshape([1, 224, 224, 3]);
+          // Make predictions using the image tensor
+          const predictions = model.predict(
+            inputTensor
+          ) as unknown as tf.Tensor;
+          const predictedLabel = tf.argMax(predictions, 1).dataSync()[0];
+          // console.log(predictedLabel);
+          setLabel(classes[predictedLabel]);
+        });
       } catch (error) {
         console.log(error);
       }
@@ -165,19 +169,32 @@ function App() {
   }, [capture]);
 
   useEffect(() => {
+    const ww = document.documentElement.clientWidth;
+    const hh = document.documentElement.clientHeight;
+
     setVideoConstraints2((prev) => ({
       ...prev,
-      width: window.innerWidth,
-      height: window.innerHeight,
+      width: ww ?? window.visualViewport?.width ?? window.innerWidth ?? 224,
+      height: hh ?? window.visualViewport?.height ?? window.innerHeight ?? 224,
       // deviceId:
       //   '255d509c830c05bd31f8a48aa1c4340345324d56fbd574f49cc2c55d71d96d40',
     }));
 
+    window.addEventListener("load", () => {
+      setVideoConstraints2((prev) => ({
+        ...prev,
+        width: ww ?? window.visualViewport?.width ?? window.innerWidth ?? 224,
+        height:
+          hh ?? window.visualViewport?.height ?? window.innerHeight ?? 224,
+      }));
+    });
+
     window.addEventListener("resize", () => {
       setVideoConstraints2((prev) => ({
         ...prev,
-        width: window.innerWidth,
-        height: window.innerHeight,
+        width: ww ?? window.visualViewport?.width ?? window.innerWidth ?? 224,
+        height:
+          hh ?? window.visualViewport?.height ?? window.innerHeight ?? 224,
       }));
     });
   }, []);
@@ -194,10 +211,24 @@ function App() {
         left: 0,
         right: 0,
         bottom: 0,
+        width: "100vw",
+        height: "100vh",
+        overflow: "hidden",
       }}
     >
       <Webcam
+        ref={webcamRef2}
+        videoConstraints={{
+          ...videoConstraints2,
+          // deviceId:
+          //   "fee45256aec9e52564209e6c4d3607cd6ad2cdee607ff5f92a7d514348198291",
+        }}
+        screenshotFormat="image/jpeg"
+        screenshotQuality={0.8}
+      />
+      <Webcam
         style={{
+          opacity: 0,
           visibility: "hidden",
           position: "fixed",
         }}
@@ -208,18 +239,10 @@ function App() {
           //   "fee45256aec9e52564209e6c4d3607cd6ad2cdee607ff5f92a7d514348198291",
         }}
         screenshotFormat="image/jpeg"
-        screenshotQuality={1}
+        screenshotQuality={0.8}
+        forceScreenshotSourceSize
       />
-      <Webcam
-        ref={webcamRef2}
-        videoConstraints={{
-          ...videoConstraints2,
-          // deviceId:
-          //   "fee45256aec9e52564209e6c4d3607cd6ad2cdee607ff5f92a7d514348198291",
-        }}
-        screenshotFormat="image/jpeg"
-        screenshotQuality={1}
-      />
+
       {label && (
         <h3
           key={label}
