@@ -46,11 +46,11 @@ const classes: string[] = [
 
 function App() {
   const webcamRef = useRef<any>(null);
-
-  // const [devices, setDevices] = useState([]);
+  const webcamRef2 = useRef<any>(null);
 
   const [label, setLabel] = useState("");
 
+  // const [devices, setDevices] = useState([]);
   // const handleDevices = useCallback(
   //   (mediaDevices: any) =>
   //     setDevices(
@@ -61,6 +61,8 @@ function App() {
   //   [setDevices]
   // );
 
+  // console.log(devices);
+
   // useEffect(() => {
   //   navigator.mediaDevices.enumerateDevices().then(handleDevices);
   // }, [handleDevices]);
@@ -70,7 +72,20 @@ function App() {
     height: 224,
     facingMode: "environment",
     // deviceId:
-    //   "915c707532ac5d746f9b48edc5caa22291512103faa7568b5417800a6e0d9a97",
+    //   "fee45256aec9e52564209e6c4d3607cd6ad2cdee607ff5f92a7d514348198291",
+  } as {
+    width: number;
+    height: number;
+    facingMode: string;
+    deviceId?: string;
+  });
+
+  const [videoConstraints2, setVideoConstraints2] = useState({
+    width: 224,
+    height: 224,
+    facingMode: "environment",
+    // deviceId:
+    //   "fee45256aec9e52564209e6c4d3607cd6ad2cdee607ff5f92a7d514348198291",
   } as {
     width: number;
     height: number;
@@ -122,7 +137,7 @@ function App() {
         // Make predictions using the image tensor
         const predictions = model.predict(inputTensor) as unknown as tf.Tensor;
         const predictedLabel = tf.argMax(predictions, 1).dataSync()[0];
-
+        // console.log(predictedLabel);
         setLabel(classes[predictedLabel]);
       } catch (error) {
         console.log(error);
@@ -149,31 +164,82 @@ function App() {
     };
   }, [capture]);
 
+  useEffect(() => {
+    setVideoConstraints2((prev) => ({
+      ...prev,
+      width: window.innerWidth,
+      height: window.innerHeight,
+      // deviceId:
+      //   '255d509c830c05bd31f8a48aa1c4340345324d56fbd574f49cc2c55d71d96d40',
+    }));
+
+    window.addEventListener("resize", () => {
+      setVideoConstraints2((prev) => ({
+        ...prev,
+        width: window.innerWidth,
+        height: window.innerHeight,
+      }));
+    });
+  }, []);
+
   if (error)
     return <pre>this is an error please refresh - {JSON.stringify(error)}</pre>;
   if (!model) return <h1>Loading ... depends on your connection</h1>;
 
   return (
-    <>
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+      }}
+    >
       <Webcam
-        ref={webcamRef}
-        videoConstraints={videoConstraints}
-        screenshotFormat="image/jpeg"
-        screenshotQuality={1}
-      />
-      <h1>{label}</h1>
-      {/* 
-      <Webcam
+        style={{
+          visibility: "hidden",
+          position: "fixed",
+        }}
         ref={webcamRef}
         videoConstraints={{
           ...videoConstraints,
-          width: 600,
-          height: 600,
+          // deviceId:
+          //   "fee45256aec9e52564209e6c4d3607cd6ad2cdee607ff5f92a7d514348198291",
         }}
         screenshotFormat="image/jpeg"
         screenshotQuality={1}
-      /> */}
-    </>
+      />
+      <Webcam
+        ref={webcamRef2}
+        videoConstraints={{
+          ...videoConstraints2,
+          // deviceId:
+          //   "fee45256aec9e52564209e6c4d3607cd6ad2cdee607ff5f92a7d514348198291",
+        }}
+        screenshotFormat="image/jpeg"
+        screenshotQuality={1}
+      />
+      {label && (
+        <h3
+          key={label}
+          style={{
+            position: "fixed",
+            bottom: "1rem",
+            left: "50%",
+            width: "80%",
+            textAlign: "center",
+            background: "#183d75",
+            color: "white",
+            padding: "0.5rem",
+            margin: "0 auto",
+            transform: "translateX(-50%)",
+          }}
+        >
+          {label}
+        </h3>
+      )}
+    </div>
   );
 }
 
